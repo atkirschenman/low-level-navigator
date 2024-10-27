@@ -39,7 +39,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(low-level-navigator low-level-navigator.cpp )
+add_executable(low-level-navigator src/low-level-navigator.cpp )
 
 pico_set_program_name(low-level-navigator "low-level-navigator")
 pico_set_program_version(low-level-navigator "0.1")
@@ -58,7 +58,7 @@ target_link_libraries(low-level-navigator
 # Add the standard include files to the build
 target_include_directories(low-level-navigator PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
+  ${CMAKE_CURRENT_LIST_DIR}/src # for our common lwipopts or any other standard includes, if required
 )
 
 # Add any user requested libraries
