@@ -9,6 +9,7 @@
 #include "hardware/clocks.h"
 #include "hardware/uart.h"
 
+#include "navigator_defines.h"
 // I2C defines
 // This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
@@ -51,12 +52,12 @@ int64_t alarm_callback(alarm_id_t id, void *user_data) {
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 
-
+nav_define::Nav_state navigation_state = nav_define::Nav_state::NS_PRECALIBRATION;
 
 int main()
 {
     stdio_init_all();
-
+    /*
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400*1000);
     
@@ -152,9 +153,36 @@ int main()
     uart_puts(UART_ID, " Hello, UART!\n");
     
     // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
-
+    */
     while (true) {
-        printf("Hello, world!\n");
+        switch(navigation_state)
+        {
+            case nav_define::Nav_state::NS_STARTUP:
+            {
+
+            }
+            break;
+            case nav_define::Nav_state::NS_PRECALIBRATION:
+            {
+
+            }
+            break;
+            case nav_define::Nav_state::NS_CALIBRATION:
+            {
+
+            }
+            break;
+            case nav_define::Nav_state::NS_IDLE_NAV:
+            {
+
+            }
+            break;
+            case nav_define::Nav_state::NS_NAVIGATION_ACTIVE:
+            {
+
+            }
+            break;
+        }
         sleep_ms(1000);
     }
 }
