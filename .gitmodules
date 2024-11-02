@@ -1,0 +1,6 @@
+[submodule "include/FreeRTOS"]
+	path = include/FreeRTOS
+	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git
+[submodule "include/pico-sdk"]
+	path = include/pico-sdk
+	url = git@github.com:raspberrypi/pico-sdk.git

@@ -6,27 +6,16 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Initialise pico_sdk from installed location
-# (note this can come from environment, CMake cache etc)
-
-# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
 # ====================================================================================
 set(PICO_BOARD pico2 CACHE STRING "Board type")
 
+
 # Pull in Raspberry Pi Pico SDK (must be before project)
-include(pico_sdk_import.cmake)
+#set(PICO_TOOLCHAIN_PATH )
+set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/include/pico-sdk)
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/include/FreeRTOS)
+#include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
+include(cmake/FreeRTOS_Kernel_import.cmake)
 
 project(low-level-navigator C CXX ASM)
 
@@ -45,32 +34,30 @@ pico_set_program_name(low-level-navigator "low-level-navigator")
 pico_set_program_version(low-level-navigator "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(low-level-navigator ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
+#pico_generate_pio_header(low-level-navigator ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(low-level-navigator 0)
 pico_enable_stdio_usb(low-level-navigator 1)
 
-# Add the standard library to the build
-target_link_libraries(low-level-navigator
-        pico_stdlib)
+add_library(freertos_config INTERFACE)
 
-# Add the standard include files to the build
-target_include_directories(low-level-navigator PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/src # for our common lwipopts or any other standard includes, if required
+target_include_directories(freertos_config SYSTEM
+INTERFACE
+    ${CMAKE_SOURCE_DIR}/src
 )
 
-# Add any user requested libraries
-target_link_libraries(low-level-navigator 
-        hardware_i2c
-        hardware_dma
-        hardware_pio
-        hardware_interp
-        hardware_timer
-        hardware_watchdog
-        hardware_clocks
-        )
+target_compile_definitions(freertos_config
+  INTERFACE
+    projCOVERAGE_TEST=0
+)
 
-pico_add_extra_outputs(low-level-navigator)
+target_link_libraries(low-level-navigator PRIVATE
+    pico_async_context_freertos
+    FreeRTOS-Kernel-Heap4
+    pico_stdlib
+    )
 
+target_compile_definitions(low-level-navigator PRIVATE
+    configNUMBER_OF_CORES=1
+    )
