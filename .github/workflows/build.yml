@@ -9,24 +9,25 @@ on:
       - 'master'  # Matches any branch for pull requests
 
 jobs:
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set up CMake
-        uses: jwlawson/actions-setup-cmake@v1.9
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
+      - name: Install clang
+        run: | 
+            sudo apt-get update -y 
+            sudo apt-get install -y clang-format clang-tidy
 
-      - name: Install cpplint
-        run: pip install cpplint
-
-      - name: Lint C++ code
-        run: find . -name "*.cpp" -o -name "*.h" | xargs cpplint
+      - name: Run clang-format
+        run: |
+          echo "Running clang-format on all C and C++ files in the src directory"
+          find src -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -exec clang-format -i {} \;
 
   build:
     runs-on: ubuntu-latest
-    needs: lint
+    needs: format
     if: always()  # This allows the build to run regardless of the lint job's result
     outputs:
       build_files: ${{ steps.build_output.outputs.artifact-id }}
@@ -34,29 +35,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install Submodules
+        run: |
+          # If your submodules are configured to use SSH instead of HTTPS please uncomment the following line
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
       
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc-arm-none-eabi
-
-      - name: Set up toolchain path
-        run: echo "PICO_TOOLCHAIN_PATH=/usr/bin" >> $GITHUB_ENV
-
-      - name: Clone Pico SDK
-        run: |
-          git clone -b master https://github.com/raspberrypi/pico-sdk.git
-          echo "PICO_SDK_PATH=$(pwd)/pico-sdk" >> $GITHUB_ENV
-
-      - name: Create build directory
-        run: mkdir build && cd build
+          sudo apt-get install -y cmake \
+            gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib \
+            build-essential \
+            pkg-config \
+            libusb-1.0-0-dev
 
       - name: Build project
         id: build_output
         run: |
-          cd build
-          cmake .. -DPICO_SDK_PATH=$PICO_SDK_PATH -DPICO_TOOLCHAIN_PATH=$PICO_TOOLCHAIN_PATH
-          make
+          scripts/build.sh
 
       - name: Upload Binaries
         uses: actions/upload-artifact@v4

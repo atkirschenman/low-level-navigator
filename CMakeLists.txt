@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 3.17)
 include(include/pico-sdk/pico_sdk_init.cmake)
 
 project(low-level-nav)
-set(PICO_BOARD pico2)
 set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(low-level-nav src/low-level-navigator.cpp)
