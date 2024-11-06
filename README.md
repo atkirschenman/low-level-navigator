@@ -1,5 +1,7 @@
 # Low Level Navigator
 
+![build workflow](https://github.com/atkirschenman/low-level-navigator/actions/workflows/build.yml/badge.svg)
+
 ## To Build:
 
 ### Clone:
@@ -25,31 +27,31 @@ sudo apt install \
 ./scripts/build.sh
 ```
 
-## LLN Archetecture 
+## LLN Architecture 
 
 The LLN is a state machine, meaning that different operations are separated at the core of the software
 
-### Pre-calibration Idle
+### Pre-Calibration Idle
 
 No commands
-zero speed
+Zero speed
 No valid calibration 
 
-### calibration
+### Calibration
 
 Going through calibration process
 
-### idle navigation
+### Idle Navigation
 
 valid calibration
 No guidance commands
 
-### active guidance
+### Active Guidance
 
-actively receiving and executing guidance commands
+Actively receiving and executing guidance commands
 
-### exiting guidance
+### Exiting Guidance
 
-no guidance commands recieved
+No guidance commands recieved
 Still executing commands
 Bring system to 0
