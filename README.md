@@ -1,5 +1,7 @@
 # Low Level Navigator
 
+![build workflow](https://github.com/atkirschenman/low-level-navigator/actions/workflows/build.yml/badge.svg)
+
 ## To Build:
 
 ### Clone:
