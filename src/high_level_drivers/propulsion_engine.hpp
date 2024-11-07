@@ -6,16 +6,16 @@ class PropulsionEngineClass {
     PropulsionEngineClass(float kp_init, float ki_init, float kd_init);
     ~PropulsionEngineClass();
 
-    uint8_t setSpeed(uint16_t new_rpm);
+    uint8_t set_speed(uint16_t new_rpm);
+    int32_t control_loop(int32_t current_rpm);
 
   private:
-    uint16_t controlLoop();
+    
 
-    uint16_t target_rpm;
-    uint16_t current_rpm;
+    int32_t target_rpm;
     float error_rpm;
     float prior_error;
-
+    int32_t output =0;
     float integral_rpm;
 
     float kp;
