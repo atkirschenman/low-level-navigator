@@ -36,12 +36,12 @@
             int delta_output = static_cast<int>(kp * error_rpm + ki * integral_rpm + kd * derivative);
                     
             //clamp outputs to prevent overruns
-            if (output <= 65000 - delta_output )
+            if (output + delta_output >= 65000)
             {
                 log_warn("commanding max value");
                 return output;
             }
-            if (output >= -65000 + delta_output)
+            if (output - delta_output <= -65000)
             {
                 log_warn("commanding min value");
                 return output;
