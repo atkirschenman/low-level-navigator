@@ -18,6 +18,8 @@ namespace config_defines
         const uint16_t right_encoder_pin = 10;
         const uint16_t left_encoder_pin = 11;
 
+        //const uint16_t led_pin = 12;
+
         const uint16_t pwm_frequency = 1000;
         const float encoder_ticks = 20.0;
     }

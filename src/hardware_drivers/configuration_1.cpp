@@ -5,58 +5,74 @@
 #include <queue>
 #include <cstring>
 
+
+
+Logger logger("config_1.cpp");
 static std::queue<uint32_t> left_irq_queue;
 static std::queue<uint32_t> right_irq_queue;
 
 
 uint16_t HardwareConfigType_1::left_hardware_start()
 {
-    log_info("Starting Left Encoders at pin: %d", config_defines::config_1::left_encoder_pin);
+    logger.info("Initializing Left Encoder at pin: %d", config_defines::config_1::left_encoder_pin);
     gpio_init(config_defines::config_1::left_encoder_pin);
     gpio_set_dir(config_defines::config_1::left_encoder_pin, GPIO_IN);
     gpio_pull_up(config_defines::config_1::left_encoder_pin);
-    log_info("Attaching interupt at pin: %d", config_defines::config_1::left_encoder_pin);
     gpio_set_irq_enabled_with_callback(config_defines::config_1::left_encoder_pin, GPIO_IRQ_EDGE_FALL, true, HardwareConfigType_1::left_encoder_interrupt);
+
+    gpio_init(config_defines::config_1::left_forward_pin);
+    gpio_set_dir(config_defines::config_1::left_forward_pin, GPIO_OUT);
+    gpio_init(config_defines::config_1::left_backward_pin);
+    gpio_set_dir(config_defines::config_1::left_backward_pin, GPIO_OUT);
     
+    logger.info("Initializing Left PWM at pin: %d", config_defines::config_1::left_pwm_pin);
     gpio_set_function(config_defines::config_1::left_pwm_pin, GPIO_FUNC_PWM);
-
-    log_info("Starting Left PWM at pin: %d", config_defines::config_1::left_pwm_pin);
     uint slice_num = pwm_gpio_to_slice_num(config_defines::config_1::left_pwm_pin);
-
     pwm_set_clkdiv(slice_num, 125.f);  // Set the clock divider
     pwm_set_wrap(slice_num, 65535);    // Set the PWM period to maximum value (16-bit resolution)
     pwm_set_gpio_level(config_defines::config_1::left_pwm_pin, 0); // Set initial duty cycle
-
     pwm_set_enabled(slice_num, true);
-    log_info("Setting Left PWM frequency: %d", config_defines::config_1::left_encoder_pin);
     pwm_set_clkdiv(slice_num, 125.f * (float)1000 / config_defines::config_1::pwm_frequency);
-
+    logger.info("Left Hardware Started", config_defines::config_1::left_pwm_pin);
     return 0;
 }
 uint16_t HardwareConfigType_1::right_hardware_start()
 {
-    log_info("Starting Left Encoders at pin: %d", config_defines::config_1::left_encoder_pin);
+    logger.info("Initializing Right Encoder at pin: %d", config_defines::config_1::right_encoder_pin);
     gpio_init(config_defines::config_1::right_encoder_pin);
     gpio_set_dir(config_defines::config_1::right_encoder_pin, GPIO_IN);
     gpio_pull_up(config_defines::config_1::right_encoder_pin);
-    log_info("Attaching interupt at pin: %d", config_defines::config_1::right_encoder_pin);
-    gpio_set_irq_enabled_with_callback(config_defines::config_1::right_encoder_pin, GPIO_IRQ_EDGE_FALL, true, HardwareConfigType_1::left_encoder_interrupt);
+    gpio_set_irq_enabled_with_callback(config_defines::config_1::right_encoder_pin, GPIO_IRQ_EDGE_FALL, true, HardwareConfigType_1::right_encoder_interrupt);
     
+    gpio_init(config_defines::config_1::right_forward_pin);
+    gpio_set_dir(config_defines::config_1::right_forward_pin, GPIO_OUT);
+    gpio_init(config_defines::config_1::right_backward_pin);
+    gpio_set_dir(config_defines::config_1::right_backward_pin, GPIO_OUT);
+
+    logger.info("Initializing Right PWM at pin: %d", config_defines::config_1::right_pwm_pin);
     gpio_set_function(config_defines::config_1::right_pwm_pin, GPIO_FUNC_PWM);
-
-    log_info("Starting Left PWM at pin: %d", config_defines::config_1::right_pwm_pin);
     uint slice_num = pwm_gpio_to_slice_num(config_defines::config_1::right_pwm_pin);
-
     pwm_set_clkdiv(slice_num, 125.f);  // Set the clock divider
     pwm_set_wrap(slice_num, 65535);    // Set the PWM period to maximum value (16-bit resolution)
     pwm_set_gpio_level(config_defines::config_1::right_pwm_pin, 0); // Set initial duty cycle
-
     pwm_set_enabled(slice_num, true);
-    log_info("Setting Left PWM frequency: %d" << config_defines::config_1::right_encoder_pin);
     pwm_set_clkdiv(slice_num, 125.f * (float)1000 / config_defines::config_1::pwm_frequency);
-
-    return 0;  
+    logger.info("Right Hardware Started", config_defines::config_1::right_pwm_pin);
+    return 0;
 }
+
+uint16_t HardwareConfigType_1::init_other_gpio()
+{
+    gpio_init(config_defines::config_1::driver_enable_pin);
+    gpio_set_dir(config_defines::config_1::driver_enable_pin, GPIO_OUT);
+    return 0;
+}
+
+bool HardwareConfigType_1::set_motors_enabled(bool enabled)
+{
+    gpio_put(config_defines::config_1::driver_enable_pin, enabled);
+}
+
 uint16_t HardwareConfigType_1::get_left_rpm()
 {
     int static index = 0;
@@ -132,13 +148,17 @@ uint16_t HardwareConfigType_1::get_right_rpm()
 
     return static_cast<unsigned int>(rpm);
 }
-void HardwareConfigType_1::set_left_pwm_output(uint16_t duty_cycle)
+void HardwareConfigType_1::set_left_pwm_output(uint16_t duty_cycle, bool forward, bool backward)
 {
     pwm_set_gpio_level(config_defines::config_1::left_pwm_pin, duty_cycle);
+    gpio_put(config_defines::config_1::left_forward_pin, forward);
+    gpio_put(config_defines::config_1::left_backward_pin, backward);
 }
-void HardwareConfigType_1::set_right_pwm_output(uint16_t duty_cycle)
+void HardwareConfigType_1::set_right_pwm_output(uint16_t duty_cycle, bool forward, bool backward)
 {
     pwm_set_gpio_level(config_defines::config_1::right_pwm_pin, duty_cycle);
+        gpio_put(config_defines::config_1::right_forward_pin, forward);
+    gpio_put(config_defines::config_1::right_backward_pin, backward);
 }
 void HardwareConfigType_1::left_encoder_interrupt(uint gpio, uint32_t event_mask)
 {
@@ -156,3 +176,4 @@ void HardwareConfigType_1::right_encoder_interrupt(uint gpio, uint32_t event_mas
     right_irq_queue.push(current_reading - last_reading);
     last_reading = current_reading;
 }
+

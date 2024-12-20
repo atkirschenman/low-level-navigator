@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "utility/logger.h"
 
+Logger logger("propulsion.cpp");
+
         PropulsionEngineClass::PropulsionEngineClass(float kp_init, float ki_init, float kd_init):
         kp(kp_init), ki(ki_init), kd(kd_init)
         {
@@ -17,12 +19,12 @@
         {
             if (new_rpm < 200)
             {
-                log_info("Set Speed to %d", new_rpm);
+                logger.info("Set Speed to %d", new_rpm);
                 target_rpm = new_rpm;
             }
-            else 
+            else
             {
-                log_error("Speed Command Invalid! Speed: %d", new_rpm);
+                logger.error("Speed Command Invalid! Speed: %d", new_rpm);
             }
         }
 
@@ -38,12 +40,12 @@
             //clamp outputs to prevent overruns
             if (output + delta_output >= 65000)
             {
-                log_warn("commanding max value");
+                logger.warn("commanding max value");
                 return output;
             }
             if (output - delta_output <= -65000)
             {
-                log_warn("commanding min value");
+                logger.warn("commanding min value");
                 return output;
             }
 
